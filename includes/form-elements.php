@@ -9,11 +9,12 @@ function buddyforms_mailpoet_elements_to_select( $elements_select_options ) {
 	if ( $post->post_type != 'buddyforms' ) {
 		return;
 	}
-	$elements_select_options['mailpoet']['label']                = 'MailPoet';
-	$elements_select_options['mailpoet']['class']                = 'bf_show_if_f_type_post';
+	$elements_select_options['mailpoet']['label']              = 'MailPoet';
+	$elements_select_options['mailpoet']['class']              = 'bf_show_if_f_type_post';
 	$elements_select_options['mailpoet']['fields']['mailpoet'] = array(
 		'label' => __( 'Newsletter Field', 'buddyforms' ),
 	);
+
 	return $elements_select_options;
 }
 
@@ -29,7 +30,40 @@ function buddyforms_mailpoet_form_builder_form_elements( $form_fields, $form_slu
 
 
 	switch ( $field_type ) {
+
 		case 'mailpoet':
+
+
+			if ( class_exists( \MailPoet\API\API::class ) ) {
+				$mailpoet_api = \MailPoet\API\API::MP( 'v1' );
+			}
+
+//			echo '<pre>';
+//			print_r($mailpoet_api->getLists());
+//			echo '</pre>';
+
+			$lists          = $mailpoet_api->getLists();
+			$mailpost_lists = array();
+			foreach ( $lists as $key => $list ) {
+				$mailpost_lists[ $list['id'] ] = $list['name'];
+			}
+
+//			echo '<pre>';
+//			print_r($mailpost_lists);
+//			echo '</pre>';
+
+
+			$mailpost_list = 'false';
+			if ( isset( $buddyforms[ $form_slug ]['form_fields'][ $field_id ]['mailpost_lists'] ) ) {
+				$mailpost_list = $buddyforms[ $form_slug ]['form_fields'][ $field_id ]['mailpost_lists'];
+			}
+
+			$form_fields['general']['mailpost_lists'] = new Element_Checkbox( 'Select the lists available in the frontend', "buddyforms_options[form_fields][" . $field_id . "][mailpost_lists]", $mailpost_lists, array(
+				'value'         => $mailpost_list,
+				'class'         => 'bf_pods_field_group_select',
+				'data-field_id' => $field_id
+			) );
+
 
 			//unset( $form_fields );
 
@@ -80,7 +114,67 @@ function buddyforms_mailpoet_frontend_form_elements( $form, $form_args ) {
 	switch ( $customfield['type'] ) {
 		case 'mailpoet':
 
-			$form->addElement( new Element_HTML( 'was auch immer' ) );
+			$element_attr = isset( $customfield['required'] ) ? array(
+				'required'  => true,
+				'value'     => $customfield_val,
+				'class'     => 'settings-input bf-select2',
+				'shortDesc' => $customfield['description']
+			) : array(
+				'value'     => $customfield['description'],
+				'class'     => 'settings-input bf-select2',
+				'shortDesc' => $customfield['description']
+			);
+
+
+
+
+
+
+
+			if ( class_exists( \MailPoet\API\API::class ) ) {
+				$mailpoet_api = \MailPoet\API\API::MP( 'v1' );
+			}
+
+			$original_lists          = $mailpoet_api->getLists();
+			$mailpost_lists = array();
+			foreach ( $original_lists as $key => $list ) {
+				$mailpost_lists[ $list['id'] ] = $list['name'];
+			}
+
+
+			foreach ( $customfield['mailpost_lists'] as $key => $list_id ) {
+
+				if(isset($mailpost_lists[$list_id])){
+					$form_element_options[ $list_id ] = $mailpost_lists[$list_id];
+				}
+
+			}
+
+
+			ob_start();
+//			echo '<pre>';
+//			print_r($customfield_val);
+//			echo '</pre>';
+
+//			echo '<pre>';
+//			print_r($mailpost_lists);
+//			echo '</pre>';
+			$tmp = ob_get_clean();
+
+
+//			$form->addElement( new Element_HTML( $tmp) );
+
+
+
+
+			$element = new Element_Select( $customfield['name'], $customfield['slug'], $form_element_options, $element_attr );
+
+			if ( isset( $customfield['multiple'] ) ) {
+				$element->setAttribute( 'multiple', 'multiple' );
+			}
+
+			$form->addElement( $element );
+
 			break;
 	}
 
