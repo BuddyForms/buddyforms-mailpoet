@@ -171,12 +171,28 @@ function buddyforms_mailpoet_update_post_meta( $customfield, $post_id ) {
 			$mailpoet_api = \MailPoet\API\API::MP( 'v1' );
 		}
 
+
 		// Get the current user
 		$current_user = wp_get_current_user();
 
 		// Get the logged in user subscription
 		$mailpoet_subscriber = $mailpoet_api->getSubscriber( $current_user->user_email );
 
+
+		$mailpost_lists = array();
+
+		// Get the mailshimp lists
+		$lists = $mailpoet_api->getLists();
+
+		// Loop the mailshimp lists
+		foreach ( $lists as $key => $list ) {
+			$mailpoet_api->unsubscribeFromList( $mailpoet_subscriber['id'], $list['id'] );
+		}
+
+
+		if( ! isset($_POST[ $customfield['slug'] ])){
+			return;
+		}
 		$mailpoet_api->subscribeToLists( $mailpoet_subscriber['id'], $_POST[ $customfield['slug'] ] );
 
 	}
