@@ -1,7 +1,7 @@
 <?php
 
 /*
- * Add MAILPOET form elementrs in the form elements select box
+ * Add MailPoet form elementrs in the form elements select box
  */
 add_filter( 'buddyforms_add_form_element_select_option', 'buddyforms_mailpoet_elements_to_select', 1, 2 );
 function buddyforms_mailpoet_elements_to_select( $elements_select_options ) {
@@ -21,7 +21,7 @@ function buddyforms_mailpoet_elements_to_select( $elements_select_options ) {
 
 
 /*
- * Create the new MAILPOET Form Builder Form Elements
+ * Create the new MailPoet Form Builder Form Elements
  *
  */
 add_filter( 'buddyforms_form_element_add_field', 'buddyforms_mailpoet_form_builder_form_elements', 1, 5 );
@@ -32,7 +32,6 @@ function buddyforms_mailpoet_form_builder_form_elements( $form_fields, $form_slu
 	switch ( $field_type ) {
 
 		case 'mailpoet':
-
 
 			if ( class_exists( \MailPoet\API\API::class ) ) {
 				$mailpoet_api = \MailPoet\API\API::MP( 'v1' );
@@ -168,6 +167,17 @@ add_action( 'buddyforms_update_post_meta', 'buddyforms_mailpoet_update_post_meta
 function buddyforms_mailpoet_update_post_meta( $customfield, $post_id ) {
 	if ( $customfield['type'] == 'mailpoet' ) {
 
+		if ( class_exists( \MailPoet\API\API::class ) ) {
+			$mailpoet_api = \MailPoet\API\API::MP( 'v1' );
+		}
+
+		// Get the current user
+		$current_user = wp_get_current_user();
+
+		// Get the logged in user subscription
+		$mailpoet_subscriber = $mailpoet_api->getSubscriber( $current_user->user_email );
+
+		$mailpoet_api->subscribeToLists( $mailpoet_subscriber['id'], $_POST[ $customfield['slug'] ] );
 
 	}
 }
@@ -180,6 +190,10 @@ function buddyforms_mailpoet_update_post_meta( $customfield, $post_id ) {
 add_filter( 'buddyforms_formbuilder_fields_options', 'buddyforms_mailpoet_formbuilder_fields_options', 10, 4 );
 function buddyforms_mailpoet_formbuilder_fields_options( $form_fields, $field_type, $field_id, $form_slug = '' ) {
 	global $buddyforms;
+
+	if ( $customfield['type'] != 'mailpoet' ) {
+		return $form_fields;
+	}
 
 	if ( class_exists( \MailPoet\API\API::class ) ) {
 		$mailpoet_api = \MailPoet\API\API::MP( 'v1' );
