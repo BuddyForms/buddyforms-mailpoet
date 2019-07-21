@@ -64,6 +64,20 @@ function buddyforms_mailpoet_form_builder_form_elements( $form_fields, $form_slu
 				'data-field_id' => $field_id
 			) );
 
+			$multiple                           = isset( $buddyforms[ $form_slug ]['form_fields'][ $field_id ]['multiple'] ) ? $buddyforms[ $form_slug ]['form_fields'][ $field_id ]['multiple'] : 'false';
+			$form_fields['general']['multiple'] = new Element_Checkbox( '<b>' . __( 'Multiple Selection', 'buddyforms' ) . '</b>', "buddyforms_options[form_fields][" . $field_id . "][multiple]", array( 'multiple' => '<b>' . __( 'Multiple', 'buddyforms' ) . '</b>' ), array(
+				'value' => $multiple,
+				'class' => ''
+			) );
+
+
+			$multiple                           = isset( $buddyforms[ $form_slug ]['form_fields'][ $field_id ]['checkbox'] ) ? $buddyforms[ $form_slug ]['form_fields'][ $field_id ]['checkbox'] : 'false';
+			$form_fields['general']['checkbox'] = new Element_Checkbox( '<b>' . __( 'Use Checkbox instead of Select', 'buddyforms' ) . '</b>', "buddyforms_options[form_fields][" . $field_id . "][checkbox]", array( 'checkbox' => '<b>' . __( 'Checkboxes', 'buddyforms' ) . '</b>' ), array(
+				'value' => $multiple,
+				'class' => '',
+				'shortDesc' => 'will become a radio button if multiple selections is deactivated.'
+			) );
+
 
 			//unset( $form_fields );
 
@@ -124,11 +138,6 @@ function buddyforms_mailpoet_frontend_form_elements( $form, $form_args ) {
 				'class'     => 'settings-input bf-select2',
 				'shortDesc' => $customfield['description']
 			);
-
-
-
-
-
 
 
 			if ( class_exists( \MailPoet\API\API::class ) ) {
