@@ -63,8 +63,16 @@ function buddyforms_mailpoet_form_builder_form_elements( $form_fields, $form_slu
 			$form_fields['general']['checkbox'] = new Element_Checkbox( __( 'Use Checkbox instead of Select', 'buddyforms' ), "buddyforms_options[form_fields][" . $field_id . "][checkbox]", array( 'checkbox' => __( 'Checkboxes', 'buddyforms' ) ), array(
 				'value'     => $multiple,
 				'class'     => '',
-				'shortDesc' => 'will become a radio button if multiple selections is deactivated.'
+				'shortDesc' => 'Will become a radio buttons if multiple selections is deactivated.'
 			) );
+
+
+			$hidden                            = isset( $customfield['hidden_field'] ) ? $customfield['hidden_field'] : false;
+
+			$form_fields['general']['hidden_field'] = new Element_Checkbox(  __( 'Hidden?', 'buddyforms' ), "buddyforms_options[form_fields][" . $field_id . "][hidden_field]", array( 'hidden_field' => '<b>' . __( 'Make this field Hidden', 'buddyforms' ) . '</b>' ), array(
+				'value' => $hidden,
+				'shortDesc' => 'If this is a hidden field the list selection will be used to automatically assign the user to the lists  ') );
+
 
 			break;
 	}
