@@ -100,11 +100,11 @@ function buddyforms_mailpoet_frontend_form_elements( $form, $form_args ) {
 				$mailpoet_api = \MailPoet\API\API::MP( 'v1' );
 			}
 
-			// Get the mailshimp lists
+			// Get the lists
 			$original_lists = $mailpoet_api->getLists();
 			$mailpost_lists = array();
 
-			// Loop the mailshimp lists
+			// Loop the lists
 			foreach ( $original_lists as $key => $list ) {
 				$mailpost_lists[ $list['id'] ] = $list['name'];
 			}
@@ -124,7 +124,7 @@ function buddyforms_mailpoet_frontend_form_elements( $form, $form_args ) {
 			$subscriptions       = $mailpoet_subscriber['subscriptions'];
 			$user_subscriptions  = array();
 			foreach ( $subscriptions as $key => $subscription ) {
-				if ( $subscription['status'] != 'unsubscribed' ) {
+				if ( $subscription['status'] != 'unsubscribed' && isset( $form_element_options[ $subscription['segment_id'] ] ) ) {
 					$user_subscriptions[] = $subscription['segment_id'];
 				}
 			}
@@ -132,6 +132,9 @@ function buddyforms_mailpoet_frontend_form_elements( $form, $form_args ) {
 //			ob_start();
 //			echo '<pre>';
 //			print_r( $subscriptions );
+//			echo '</pre>';
+//			echo '<pre>';
+//			print_r( $user_subscriptions );
 //			echo '</pre>';
 //			$tmp = ob_get_clean();
 //			$form->addElement( new Element_HTML( $tmp ) );
@@ -153,17 +156,17 @@ function buddyforms_mailpoet_frontend_form_elements( $form, $form_args ) {
 				if ( isset( $customfield['multiple'] ) ) {
 					$element = new Element_Checkbox( $customfield['name'], $customfield['slug'], $form_element_options, $element_attr );
 				} else {
+					$element_attr['value'] = $user_subscriptions[0];
 					$element = new Element_Radio( $customfield['name'], $customfield['slug'], $form_element_options, $element_attr );
 				}
 			} else {
 				$element = new Element_Select( $customfield['name'], $customfield['slug'], $form_element_options, $element_attr );
+				BuddyFormsAssets::load_select2_assets();
 			}
 
 			if ( isset( $customfield['multiple'] ) ) {
 				$element->setAttribute( 'multiple', 'multiple' );
 			}
-
-			BuddyFormsAssets::load_select2_assets();
 
 			$form->addElement( $element );
 
