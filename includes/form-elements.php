@@ -157,7 +157,7 @@ function buddyforms_mailpoet_frontend_form_elements( $form, $form_args ) {
 					$element = new Element_Checkbox( $customfield['name'], $customfield['slug'], $form_element_options, $element_attr );
 				} else {
 					$element_attr['value'] = $user_subscriptions[0];
-					$element = new Element_Radio( $customfield['name'], $customfield['slug'], $form_element_options, $element_attr );
+					$element               = new Element_Radio( $customfield['name'], $customfield['slug'], $form_element_options, $element_attr );
 				}
 			} else {
 				$element = new Element_Select( $customfield['name'], $customfield['slug'], $form_element_options, $element_attr );
@@ -212,8 +212,8 @@ function buddyforms_mailpoet_update_post_meta( $customfield, $post_id ) {
 			$mailpoet_api->subscribeToList( $mailpoet_subscriber['id'], $_POST[ $customfield['slug'] ] );
 		}
 
-
 	}
+
 }
 
 
@@ -258,3 +258,29 @@ function buddyforms_mailpoet_formbuilder_fields_options( $form_fields, $field_ty
 	return $form_fields;
 }
 
+add_action( 'buddyforms_process_submission_end', 'buddyforms_pods_process_submission_end', 10, 1 );
+function buddyforms_pods_process_submission_end( $args ) {
+	global $buddyforms;
+
+	extract( $args );
+
+	if ( ! isset( $post_id ) ) {
+		return;
+	}
+
+	if ( isset( $buddyforms[ $form_slug ] ) ) {
+		if ( isset( $buddyforms[ $form_slug ]['form_fields'] ) ) {
+
+			foreach ( $buddyforms[ $form_slug ]['form_fields'] as $field_key => $field ) {
+
+				if ( isset( $field['mapped_mailpoet_field'] ) && $field['mapped_mailpoet_field'] != 'none' ) {
+
+					// Sanitise and Update SubscriberField s$_POST[ $field['slug'] ];
+
+				}
+
+			}
+		}
+	}
+
+}
