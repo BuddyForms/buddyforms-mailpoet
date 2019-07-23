@@ -67,11 +67,12 @@ function buddyforms_mailpoet_form_builder_form_elements( $form_fields, $form_slu
 			) );
 
 
-			$hidden                            = isset( $customfield['hidden_field'] ) ? $customfield['hidden_field'] : false;
+			$hidden = isset( $customfield['hidden_field'] ) ? $customfield['hidden_field'] : false;
 
-			$form_fields['general']['hidden_field'] = new Element_Checkbox(  __( 'Hidden?', 'buddyforms' ), "buddyforms_options[form_fields][" . $field_id . "][hidden_field]", array( 'hidden_field' => '<b>' . __( 'Make this field Hidden', 'buddyforms' ) . '</b>' ), array(
-				'value' => $hidden,
-				'shortDesc' => 'If this is a hidden field the list selection will be used to automatically assign the user to the lists  ') );
+			$form_fields['general']['hidden_field'] = new Element_Checkbox( __( 'Hidden?', 'buddyforms' ), "buddyforms_options[form_fields][" . $field_id . "][hidden_field]", array( 'hidden_field' => '<b>' . __( 'Make this field Hidden', 'buddyforms' ) . '</b>' ), array(
+				'value'     => $hidden,
+				'shortDesc' => 'If this is a hidden field the list selection will be used to automatically assign the user to the lists  '
+			) );
 
 
 			break;
@@ -152,11 +153,9 @@ function buddyforms_mailpoet_frontend_form_elements( $form, $form_args ) {
 			$element_attr = isset( $customfield['required'] ) ? array(
 				'required'  => true,
 				'value'     => $user_subscriptions,
-				'class'     => 'settings-input bf-select2',
 				'shortDesc' => $customfield['description']
 			) : array(
 				'value'     => $user_subscriptions,
-				'class'     => 'settings-input bf-select2',
 				'shortDesc' => $customfield['description']
 			);
 
@@ -168,6 +167,7 @@ function buddyforms_mailpoet_frontend_form_elements( $form, $form_args ) {
 					$element               = new Element_Radio( $customfield['name'], $customfield['slug'], $form_element_options, $element_attr );
 				}
 			} else {
+				$element_attr['class'] = 'settings-input bf-select2';
 				$element = new Element_Select( $customfield['name'], $customfield['slug'], $form_element_options, $element_attr );
 				BuddyFormsAssets::load_select2_assets();
 			}
