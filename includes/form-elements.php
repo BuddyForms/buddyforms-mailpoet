@@ -11,7 +11,7 @@ function buddyforms_mailpoet_elements_to_select( $elements_select_options ) {
 		return;
 	}
 	$elements_select_options['mailpoet']['label']              = 'MailPoet';
-	$elements_select_options['mailpoet']['class']              = 'bf_show_if_f_type_post';
+	$elements_select_options['mailpoet']['class']              = 'bf_show_if_f_type_all';
 	$elements_select_options['mailpoet']['fields']['mailpoet'] = array(
 		'label' => __( 'Newsletter Field', 'buddyforms' ),
 	);
@@ -50,18 +50,17 @@ function buddyforms_mailpoet_form_builder_form_elements( $form_fields, $form_slu
 			}
 			$form_fields['general']['mailpost_lists'] = new Element_Checkbox( 'Select the lists available in the frontend', "buddyforms_options[form_fields][" . $field_id . "][mailpost_lists]", $mailpost_lists, array(
 				'value'         => $mailpost_list,
-				'class'         => 'bf_pods_field_group_select',
-				'data-field_id' => $field_id
+				'class'         => '',
 			) );
 
 			$multiple                           = isset( $buddyforms[ $form_slug ]['form_fields'][ $field_id ]['multiple'] ) ? $buddyforms[ $form_slug ]['form_fields'][ $field_id ]['multiple'] : 'false';
-			$form_fields['general']['multiple'] = new Element_Checkbox( '<b>' . __( 'Multiple Selection', 'buddyforms' ) . '</b>', "buddyforms_options[form_fields][" . $field_id . "][multiple]", array( 'multiple' => '<b>' . __( 'Multiple', 'buddyforms' ) . '</b>' ), array(
+			$form_fields['general']['multi'] = new Element_Checkbox(  __( 'Multiple Selection', 'buddyforms' ), "buddyforms_options[form_fields][" . $field_id . "][multiple]", array( 'multiple' =>  __( 'Multiple', 'buddyforms' )  ), array(
 				'value' => $multiple,
 				'class' => ''
 			) );
 
 			$multiple                           = isset( $buddyforms[ $form_slug ]['form_fields'][ $field_id ]['checkbox'] ) ? $buddyforms[ $form_slug ]['form_fields'][ $field_id ]['checkbox'] : 'false';
-			$form_fields['general']['checkbox'] = new Element_Checkbox( '<b>' . __( 'Use Checkbox instead of Select', 'buddyforms' ) . '</b>', "buddyforms_options[form_fields][" . $field_id . "][checkbox]", array( 'checkbox' => '<b>' . __( 'Checkboxes', 'buddyforms' ) . '</b>' ), array(
+			$form_fields['general']['checkbox'] = new Element_Checkbox( __( 'Use Checkbox instead of Select', 'buddyforms' ), "buddyforms_options[form_fields][" . $field_id . "][checkbox]", array( 'checkbox' =>  __( 'Checkboxes', 'buddyforms' )  ), array(
 				'value'     => $multiple,
 				'class'     => '',
 				'shortDesc' => 'will become a radio button if multiple selections is deactivated.'
@@ -122,16 +121,23 @@ function buddyforms_mailpoet_frontend_form_elements( $form, $form_args ) {
 
 			// Get the logged in user subscription
 			$mailpoet_subscriber = $mailpoet_api->getSubscriber( $current_user->user_email );
-
-
-			$subscriptions      = $mailpoet_subscriber['subscriptions'];
-			$user_subscriptions = array();
+			$subscriptions       = $mailpoet_subscriber['subscriptions'];
+			$user_subscriptions  = array();
 			foreach ( $subscriptions as $key => $subscription ) {
-				$user_subscriptions[] = $subscription['segment_id'];
+				if ( $subscription['status'] != 'unsubscribed' ) {
+					$user_subscriptions[] = $subscription['segment_id'];
+				}
 			}
 
+//			ob_start();
+//			echo '<pre>';
+//			print_r( $subscriptions );
+//			echo '</pre>';
+//			$tmp = ob_get_clean();
+//			$form->addElement( new Element_HTML( $tmp ) );
 
-			// Creata the form elements attribute array
+
+			// Create the form elements attribute array
 			$element_attr = isset( $customfield['required'] ) ? array(
 				'required'  => true,
 				'value'     => $user_subscriptions,
@@ -171,7 +177,6 @@ function buddyforms_mailpoet_update_post_meta( $customfield, $post_id ) {
 			$mailpoet_api = \MailPoet\API\API::MP( 'v1' );
 		}
 
-
 		// Get the current user
 		$current_user = wp_get_current_user();
 
@@ -189,8 +194,7 @@ function buddyforms_mailpoet_update_post_meta( $customfield, $post_id ) {
 			$mailpoet_api->unsubscribeFromList( $mailpoet_subscriber['id'], $list['id'] );
 		}
 
-
-		if( ! isset($_POST[ $customfield['slug'] ])){
+		if ( ! isset( $_POST[ $customfield['slug'] ] ) ) {
 			return;
 		}
 		$mailpoet_api->subscribeToLists( $mailpoet_subscriber['id'], $_POST[ $customfield['slug'] ] );
@@ -207,7 +211,7 @@ add_filter( 'buddyforms_formbuilder_fields_options', 'buddyforms_mailpoet_formbu
 function buddyforms_mailpoet_formbuilder_fields_options( $form_fields, $field_type, $field_id, $form_slug = '' ) {
 	global $buddyforms;
 
-	if ( $customfield['type'] != 'mailpoet' ) {
+	if ( $field_type == 'mailpoet' ) {
 		return $form_fields;
 	}
 
@@ -218,10 +222,10 @@ function buddyforms_mailpoet_formbuilder_fields_options( $form_fields, $field_ty
 
 //	ob_start();
 //	echo '<pre>';
-//	print_r( $subscriberfields );
+//	print_r( $field_type );
 //	echo '</pre>';
 //	$tmp                                              = ob_get_clean();
-//	$form_fields['MailPoet']['mapped_mailpoet_field'] = new Element_HTML( $tmp );
+//	$form_fields['MailPoet']['mapped_mailpoet_dump'] = new Element_HTML( $tmp );
 
 	$mailpoet_form_fields = array();
 	foreach ( $subscriberfields as $key => $subscriberfield ) {
