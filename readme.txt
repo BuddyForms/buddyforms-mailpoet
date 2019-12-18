@@ -11,3 +11,5 @@ Use BuddyForms with MailPoet
 
 == Description ==
 
+Use MailPoet with BuddyForms
+

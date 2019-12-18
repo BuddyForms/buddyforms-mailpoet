@@ -105,6 +105,10 @@ function buddyforms_mailpoet_frontend_form_elements( $form, $form_args ) {
 		case 'mailpoet':
 
 
+			if ( ! isset( $customfield['mailpost_lists'] ) ) {
+				return $form;
+			}
+
 			if ( class_exists( \MailPoet\API\API::class ) ) {
 				$mailpoet_api = \MailPoet\API\API::MP( 'v1' );
 			}
@@ -117,6 +121,7 @@ function buddyforms_mailpoet_frontend_form_elements( $form, $form_args ) {
 			foreach ( $original_lists as $key => $list ) {
 				$mailpost_lists[ $list['id'] ] = $list['name'];
 			}
+
 
 			// Loop all lists selected in the form element options
 			foreach ( $customfield['mailpost_lists'] as $key => $list_id ) {
@@ -168,7 +173,7 @@ function buddyforms_mailpoet_frontend_form_elements( $form, $form_args ) {
 				}
 			} else {
 				$element_attr['class'] = 'settings-input bf-select2';
-				$element = new Element_Select( $customfield['name'], $customfield['slug'], $form_element_options, $element_attr );
+				$element               = new Element_Select( $customfield['name'], $customfield['slug'], $form_element_options, $element_attr );
 				BuddyFormsAssets::load_select2_assets();
 			}
 
@@ -254,20 +259,20 @@ function buddyforms_mailpoet_formbuilder_fields_options( $form_fields, $field_ty
 		$mailpoet_form_fields[ $subscriberfield['id'] ] = $subscriberfield['name'];
 	}
 
-	$mapped_pods_field = isset( $buddyforms[ $form_slug ]['form_fields'][ $field_id ]['mapped_mailpoet_field'] ) ? $buddyforms[ $form_slug ]['form_fields'][ $field_id ]['mapped_mailpoet_field'] : '';
+	$mapped_mailpoet_field = isset( $buddyforms[ $form_slug ]['form_fields'][ $field_id ]['mapped_mailpoet_field'] ) ? $buddyforms[ $form_slug ]['form_fields'][ $field_id ]['mapped_mailpoet_field'] : '';
 
-	$form_fields['MailPoet']['mapped_mailpoet_field'] = new Element_Select( '<b>' . __( 'Map with existing Mailpoet Field', 'buddyforms' ) . '</b>', "buddyforms_options[form_fields][" . $field_id . "][mapped_pods_field]", $mailpoet_form_fields, array(
-		'value'    => $mapped_pods_field,
+	$form_fields['MailPoet']['mapped_mailpoet_field'] = new Element_Select( '<b>' . __( 'Map with existing Mailpoet Field', 'buddyforms' ) . '</b>', "buddyforms_options[form_fields][" . $field_id . "][mapped_mailpoet_field]", $mailpoet_form_fields, array(
+		'value'    => $mapped_mailpoet_field,
 		'class'    => 'bf_tax_select',
 		'field_id' => $field_id,
-		'id'       => 'buddyforms_pods_' . $field_id,
+		'id'       => 'buddyforms_mailpoet_' . $field_id,
 	) );
 
 	return $form_fields;
 }
 
-add_action( 'buddyforms_process_submission_end', 'buddyforms_pods_process_submission_end', 10, 1 );
-function buddyforms_pods_process_submission_end( $args ) {
+add_action( 'buddyforms_process_submission_end', 'buddyforms_mailpoet_process_submission_end', 10, 1 );
+function buddyforms_mailpoet_process_submission_end( $args ) {
 	global $buddyforms;
 
 	extract( $args );
