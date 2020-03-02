@@ -1,0 +1,31 @@
+{
+  "name": "themekraft/buddyforms-mailpoet",
+  "description": "Let your users subscribe to MailPoet lists from BuddForms",
+  "type": "wordpress-plugin",
+  "keywords": ["mailpoet", "buddyforms", "buddyforms mailpoet", "add subscriber to mailpoet", "remove a subscriber from mailpoet list", "mailpoet list"],
+  "homepage": "https://themekraft.com/products/buddyforms-mailpoet/",
+  "license": "GPL-2.0+",
+  "authors": [
+    {
+      "name": "Sven Lehnert",
+      "email": "svenl@themekraft.com"
+    },
+    {
+      "name": "Guillermo Figueroa Mesa",
+      "email": "gfirem@gmail.com"
+    }
+  ],
+  "minimum-stability": "stable",
+  "require": {
+    "php": ">=5.2"
+  },
+  "require-dev": {
+    "bruli/php-git-hooks": "^5.1"
+  },
+  "scripts": {
+    "package": "sh .tk/package.sh loader",
+    "wp-release": "sh .tk/wp_release.sh",
+    "beta-release": "sh .tk/full-deploy.sh buddyforms-mailpoet 5209 false beta",
+    "full-release": "sh .tk/full-deploy.sh buddyforms-mailpoet 5209 false released"
+  }
+}

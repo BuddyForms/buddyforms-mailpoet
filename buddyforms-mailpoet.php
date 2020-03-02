@@ -3,13 +3,13 @@
 /**
  * Plugin Name: BuddyForms MailPoet
  * Plugin URI: https://themekraft.com/products/buddyforms-mailpoet/
- * Description: Use BuddyForms with MailPoet
+ * Description: Let your users subscribe to MailPoet lists from BuddForms
  * Version: 1.0.0
  * Author: ThemeKraft
  * Author URI: https://themekraft.com/
  * License: GPLv2 or later
  * Network: false
- * Text Domain: buddyforms
+ * Text Domain: bf-mailpoet
  *
  *****************************************************************************
  *
@@ -30,12 +30,24 @@
  ****************************************************************************
  */
 
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
 
 class BuddyFormsMailPoet {
 	/**
 	 * @var string
 	 */
-	public $version = '1.0.0';
+	public static $version = '1.0.0';
+	public static $include_assets = array();
+	public static $slug = 'bf-mailpoet';
+
+	/**
+	 * Instance of this class
+	 *
+	 * @var $instance BuddyFormsMailPoet
+	 */
+	protected static $instance = null;
 
 	/**
 	 * Initiate the class
@@ -43,20 +55,8 @@ class BuddyFormsMailPoet {
 	 * @since 0.1
 	 */
 	public function __construct() {
-		add_action(
-			'init',
-			array( $this, 'includes' ),
-			4,
-			1
-		);
+		add_action( 'init', array( $this, 'includes' ), 4, 1 );
 		add_action( 'plugins_loaded', array( $this, 'load_plugin_textdomain' ) );
-		add_action( 'buddyforms_admin_js_css_enqueue', array( $this, 'buddyforms_mailpoet_admin_js' ) );
-		add_action(
-			'init',
-			array( $this, 'buddyforms_mailpoet_front_js_css_enqueue' ),
-			2,
-			1
-		);
 		$this->load_constants();
 	}
 
@@ -90,7 +90,23 @@ class BuddyFormsMailPoet {
 	 * @since 0.1
 	 */
 	public function includes() {
-		require_once BUDDYFORMS_MAILPOET_INCLUDES_PATH . 'form-elements.php';
+		if ( self::is_buddy_form_active() ) {
+			if ( self::is_mailpoet_active() ) {
+				require_once BUDDYFORMS_MAILPOET_INCLUDES_PATH . 'form-elements.php';
+			} else {
+				add_action( 'admin_notices', array( $this, 'need_mailpoet' ) );
+			}
+		} else {
+			add_action( 'admin_notices', array( $this, 'need_buddyforms' ) );
+		}
+	}
+
+	public function need_mailpoet() {
+		self::admin_notice( '<b>Oops...</b> BuddyForms MailPoet cannot run without <a target="_blank" href="https://wordpress.org/plugins/mailpoet/" title="MailPoet">MailPoet</a>.' );
+	}
+
+	public function need_buddyforms() {
+		self::admin_notice();
 	}
 
 	/**
@@ -100,49 +116,117 @@ class BuddyFormsMailPoet {
 	 * @since 0.1
 	 */
 	public function load_plugin_textdomain() {
-		load_plugin_textdomain( 'buddyforms', false, dirname( plugin_basename( __FILE__ ) ) . '/languages/' );
+		load_plugin_textdomain( 'bf-mailpoet', false, dirname( plugin_basename( __FILE__ ) ) . '/languages/' );
 	}
 
-	/**
-	 * Enqueue the needed CSS for the admin screen
-	 *
-	 * @package buddyforms_mailpoet
-	 * @since 0.1
-	 */
-	function buddyforms_mailpoet_admin_style( $hook_suffix ) {
+	public static function load_plugins_dependency() {
+		include_once( ABSPATH . 'wp-admin/includes/plugin.php' );
 	}
 
-	/**
-	 * Enqueue the needed JS for the admin screen
-	 *
-	 * @package buddyforms_mailpoet
-	 * @since 0.1
-	 */
-	function buddyforms_mailpoet_admin_js( $hook_suffix ) {
-		global $post;
-		if ( isset( $post ) && $post->post_type == 'buddyforms' && isset( $_GET['action'] ) && $_GET['action'] == 'edit' || isset( $post ) && $post->post_type == 'buddyforms' && $hook_suffix == 'post-new.php' || $hook_suffix == 'buddyforms_page_bf_add_ons' || $hook_suffix == 'buddyforms_page_bf_settings' ) {
-			//wp_enqueue_script( 'buddyforms-mailpoet-form-builder-js', plugins_url( 'assets/admin/js/form-builder.js', __FILE__ ), array( 'jquery' ) );
+	public static function is_mailpoet_active() {
+		self::load_plugins_dependency();
+
+		return is_plugin_active( 'mailpoet/mailpoet.php' );
+	}
+
+	public static function is_buddy_form_active() {
+		self::load_plugins_dependency();
+
+		return is_plugin_active( 'buddyforms-premium/BuddyForms.php' );
+	}
+
+	public static function error_log( $message ) {
+		if ( ! empty( $message ) ) {
+			error_log( self::getSlug() . ' -- ' . $message );
 		}
 	}
 
 	/**
-	 * Enqueue the needed JS for the frontend
+	 * Get plugin version
 	 *
-	 * @package buddyforms_mailpoet
-	 * @since 0.1
+	 * @return string
 	 */
-	function buddyforms_mailpoet_front_js_css_enqueue() {
+	static function getVersion() {
+		return self::$version;
+	}
+
+	/**
+	 * Get plugins slug
+	 *
+	 * @return string
+	 */
+	static function getSlug() {
+		return self::$slug;
+	}
+
+	/**
+	 * Return an instance of this class.
+	 *
+	 * @return object A single instance of this class.
+	 */
+	public static function get_instance() {
+		// If the single instance hasn't been set, set it now.
+		if ( null == self::$instance ) {
+			self::$instance = new self;
+		}
+
+		return self::$instance;
+	}
+
+	public static function admin_notice( $html = '' ) {
+		if ( empty( $html ) ) {
+			$html = '<b>Oops...</b> BuddyForms MailPoet cannot run without <a target="_blank" href="https://themekraft.com/buddyforms/">BuddyForms</a>.';
+		}
+		?>
+		<style>
+			.buddyforms-notice label.buddyforms-title {
+				background: rgba(0, 0, 0, 0.3);
+				color: #fff;
+				padding: 2px 10px;
+				position: absolute;
+				top: 100%;
+				bottom: auto;
+				right: auto;
+				-moz-border-radius: 0 0 3px 3px;
+				-webkit-border-radius: 0 0 3px 3px;
+				border-radius: 0 0 3px 3px;
+				left: 10px;
+				font-size: 12px;
+				font-weight: bold;
+				cursor: auto;
+			}
+
+			.buddyforms-notice .buddyforms-notice-body {
+				margin: .5em 0;
+				padding: 2px;
+			}
+
+			.buddyforms-notice.buddyforms-title {
+				margin-bottom: 30px !important;
+			}
+
+			.buddyforms-notice {
+				position: relative;
+			}
+		</style>
+		<div class="error buddyforms-notice buddyforms-title">
+			<label class="buddyforms-title">BuddyForms MailPoet</label>
+			<div class="buddyforms-notice-body">
+				<?php echo $html; ?>
+			</div>
+		</div>
+		<?php
 	}
 
 }
 
 
-if ( ! function_exists( 'buddyforms_mailpoet_fs' ) ) {
+if ( ! function_exists( 'buddyforms_mailpoet_freemius' ) ) {
 	// Create a helper function for easy SDK access.
-	function buddyforms_mailpoet_fs() {
-		global $buddyforms_mailpoet_fs;
+	function buddyforms_mailpoet_freemius() {
+		global $buddyforms_mailpoet_freemius;
 
-		if ( ! isset( $buddyforms_mailpoet_fs ) ) {
+		if ( ! isset( $buddyforms_mailpoet_freemius ) ) {
 			// Include Freemius SDK.
 			if ( file_exists( dirname( dirname( __FILE__ ) ) . '/buddyforms/includes/resources/freemius/start.php' ) ) {
 				// Try to load SDK from parent plugin folder.
@@ -152,41 +236,45 @@ if ( ! function_exists( 'buddyforms_mailpoet_fs' ) ) {
 				require_once dirname( dirname( __FILE__ ) ) . '/buddyforms-premium/includes/resources/freemius/start.php';
 			}
 
-			$buddyforms_mailpoet_fs = fs_dynamic_init( array(
-				'id'                  => '5209',
-				'slug'                => 'bf-mailpoet',
-				'type'                => 'plugin',
-				'public_key'          => 'pk_4b627ab41759a079601e2d8c576da',
-				'is_premium'          => true,
-				'is_premium_only'     => true,
-				'has_paid_plans'      => true,
-				'is_org_compliant'    => false,
-				'trial'               => array(
-					'days'               => 14,
-					'is_require_payment' => true,
-				),
-				'parent'              => array(
-					'id'         => '391',
-					'slug'       => 'buddyforms',
-					'public_key' => 'pk_dea3d8c1c831caf06cfea10c7114c',
-					'name'       => 'BuddyForms',
-				),
-				'menu'                => array(
-					'support'        => false,
-				)
-			) );
+			try {
+				$buddyforms_mailpoet_freemius = fs_dynamic_init( array(
+					'id'               => '5209',
+					'slug'             => 'bf-mailpoet',
+					'type'             => 'plugin',
+					'public_key'       => 'pk_4b627ab41759a079601e2d8c576da',
+					'is_premium'       => true,
+					'is_premium_only'  => true,
+					'has_paid_plans'   => true,
+					'is_org_compliant' => false,
+					'trial'            => array(
+						'days'               => 14,
+						'is_require_payment' => true,
+					),
+					'parent'           => array(
+						'id'         => '391',
+						'slug'       => 'buddyforms',
+						'public_key' => 'pk_dea3d8c1c831caf06cfea10c7114c',
+						'name'       => 'BuddyForms',
+					),
+					'menu'             => array(
+						'support' => false,
+					)
+				) );
+			} catch ( Freemius_Exception $e ) {
+				return false;
+			}
 		}
 
-		return $buddyforms_mailpoet_fs;
+		return $buddyforms_mailpoet_freemius;
 	}
 }
 
-function buddyforms_mailpoet_fs_is_parent_active_and_loaded() {
+function buddyforms_mailpoet_freemius_is_parent_active_and_loaded() {
 	// Check if the parent's init SDK method exists.
 	return function_exists( 'buddyforms_core_fs' );
 }
 
-function buddyforms_mailpoet_fs_is_parent_active() {
+function buddyforms_mailpoet_freemius_is_parent_active() {
 	$active_plugins = get_option( 'active_plugins', array() );
 
 	if ( is_multisite() ) {
@@ -205,29 +293,33 @@ function buddyforms_mailpoet_fs_is_parent_active() {
 	return false;
 }
 
-function buddyforms_mailpoet_fs_init() {
-	if ( buddyforms_mailpoet_fs_is_parent_active_and_loaded() ) {
+function buddyforms_mailpoet_need_buddyforms() {
+	BuddyFormsMailPoet::admin_notice();
+}
+
+function buddyforms_mailpoet_freemius_init() {
+	if ( buddyforms_mailpoet_freemius_is_parent_active_and_loaded() ) {
 		// Init Freemius.
-		buddyforms_mailpoet_fs();
+		buddyforms_mailpoet_freemius();
 
 
 		// Signal that the add-on's SDK was initiated.
-		do_action( 'buddyforms_mailpoet_fs_loaded' );
+		do_action( 'buddyforms_mailpoet_freemius_loaded' );
 
-		$GLOBALS['BuddyFormsMailPoet'] = new BuddyFormsMailPoet();
+		$GLOBALS['BuddyFormsMailPoet'] = BuddyFormsMailPoet::get_instance();
 
 	} else {
-		// Parent is inactive, add your error handling here.
+		add_action( 'admin_notices', 'buddyforms_mailpoet_need_buddyforms' );
 	}
 }
 
-if ( buddyforms_mailpoet_fs_is_parent_active_and_loaded() ) {
+if ( buddyforms_mailpoet_freemius_is_parent_active_and_loaded() ) {
 	// If parent already included, init add-on.
-	buddyforms_mailpoet_fs_init();
-} else if ( buddyforms_mailpoet_fs_is_parent_active() ) {
+	buddyforms_mailpoet_freemius_init();
+} else if ( buddyforms_mailpoet_freemius_is_parent_active() ) {
 	// Init add-on only after the parent is loaded.
-	add_action( 'buddyforms_core_fs_loaded', 'buddyforms_mailpoet_fs_init' );
+	add_action( 'buddyforms_core_fs_loaded', 'buddyforms_mailpoet_freemius_init' );
 } else {
 	// Even though the parent is not activated, execute add-on for activation / uninstall hooks.
-	buddyforms_mailpoet_fs_init();
+	buddyforms_mailpoet_freemius_init();
 }
