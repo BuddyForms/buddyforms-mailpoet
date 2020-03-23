@@ -92,7 +92,10 @@ class BuddyFormsMailPoet {
 	public function includes() {
 		if ( self::is_buddy_form_active() ) {
 			if ( self::is_mailpoet_active() ) {
-				require_once BUDDYFORMS_MAILPOET_INCLUDES_PATH . 'form-elements.php';
+				$freemius = self::get_freemius();
+				if ( ! empty( $freemius ) && $freemius->is_paying_or_trial() ) {
+					require_once BUDDYFORMS_MAILPOET_INCLUDES_PATH . 'form-elements.php';
+				}
 			} else {
 				add_action( 'admin_notices', array( $this, 'need_mailpoet' ) );
 			}
@@ -107,6 +110,15 @@ class BuddyFormsMailPoet {
 
 	public function need_buddyforms() {
 		self::admin_notice();
+	}
+
+	/**
+	 * @return Freemius
+	 */
+	public static function get_freemius() {
+		global $buddyforms_mailpoet_freemius;
+
+		return $buddyforms_mailpoet_freemius;
 	}
 
 	/**
