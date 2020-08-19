@@ -16,14 +16,8 @@
     }
   ],
   "minimum-stability": "stable",
-  "require": {
-    "php": ">=5.2"
-  },
-  "require-dev": {
-    "bruli/php-git-hooks": "^5.1"
-  },
   "scripts": {
-    "package": "sh .tk/package.sh loader",
+    "package": "sh .tk/package.sh buddyforms-mailpoet",
     "wp-release": "sh .tk/wp_release.sh",
     "beta-release": "sh .tk/full-deploy.sh buddyforms-mailpoet 5209 false beta",
     "full-release": "sh .tk/full-deploy.sh buddyforms-mailpoet 5209 false released"
