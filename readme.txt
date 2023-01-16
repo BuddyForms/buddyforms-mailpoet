@@ -3,8 +3,8 @@ Contributors: svenl77, themekraft, buddyforms, gfirem
 Tags: buddyforms, mailpoet, buddyforms mailpoet, add subscriber to mailpoet, remove a subscriber from mailpoet list, mailpoet list
 Requires at least: 4.9
 Requires PHP: 5.3
-Tested up to: 5.3
-Stable tag: 1.0.0
+Tested up to: 6.1.1
+Stable tag: 1.0.1
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -48,5 +48,10 @@ If you still get stuck somewhere, our support gets you back on the right track. 
 
 
 == Changelog ==
+= 1.0.1 - 15 Jan 2023 =
+* Updated duration of trial version.
+* Added bundle license auto activation.
+* Tested up to WordPress 6.1.1
+
 = 1.0.0 - 2 March 2020 =
 * Initial version.

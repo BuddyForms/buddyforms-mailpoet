@@ -4,7 +4,7 @@
  * Plugin Name: BuddyForms MailPoet
  * Plugin URI: https://themekraft.com/products/buddyforms-mailpoet/
  * Description: Let your users subscribe to MailPoet lists from BuddForms
- * Version: 1.0.0
+ * Version: 1.0.1
  * Author: ThemeKraft
  * Author URI: https://themekraft.com/
  * License: GPLv2 or later
@@ -38,7 +38,7 @@ class BuddyFormsMailPoet {
 	/**
 	 * @var string
 	 */
-	public static $version = '1.0.0';
+	public static $version = '1.0.1';
 	public static $include_assets = array();
 	public static $slug = 'bf-mailpoet';
 
@@ -259,7 +259,7 @@ if ( ! function_exists( 'buddyforms_mailpoet_freemius' ) ) {
 					'has_paid_plans'   => true,
 					'is_org_compliant' => false,
 					'trial'            => array(
-						'days'               => 14,
+						'days'               => 7,
 						'is_require_payment' => true,
 					),
 					'parent'           => array(
@@ -269,8 +269,10 @@ if ( ! function_exists( 'buddyforms_mailpoet_freemius' ) ) {
 						'name'       => 'BuddyForms',
 					),
 					'menu'             => array(
+						'first-path'     => 'plugins.php',
 						'support' => false,
-					)
+					),
+					'bundle_license_auto_activation' => true,
 				) );
 			} catch ( Freemius_Exception $e ) {
 				return false;
